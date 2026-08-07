@@ -1,1 +1,36 @@
-.
+# Core scientific computing
+numpy
+pandas
+scipy
+
+# Data / file handling
+openpyxl
+h5py
+
+# Classical optimization
+scikit-learn
+ortools
+pulp
+
+# Quantum computing
+qiskit
+qiskit-aer
+qiskit-optimization
+qiskit-algorithms
+
+# Visualization
+matplotlib
+seaborn
+plotly
+
+# Dashboard
+streamlit
+
+# Jupyter / notebooks
+jupyter
+jupyterlab
+ipykernel
+
+# Utilities
+tqdm
+pyyaml
