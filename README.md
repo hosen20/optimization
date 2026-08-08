@@ -68,10 +68,8 @@ We solved five sizes of the same problem to the proven best answer and measured 
 | Focus orders | 50 | 100 | 200 | 300 | 472 |
 |---|---|---|---|---|---|
 | **Greedy gap** | 0.84% | 2.08% | 3.11% | 3.12% | **3.21%** |
-| Solve time | 1.4s | 6.4s | 18.5s | 35.1s | 63.7s |
-| Binary variables | 227 | 458 | 920 | 1,472 | 2,594 |
 
-On small problems a heuristic is nearly as good as the best answer. The more orders compete for the same stock, the more it loses. A full production order book would widen this further.
+On small problems a heuristic is nearly as good as the best answer. The more orders compete for the same stock, the more it loses by never going back. A full production order book would widen this further.
 
 ---
 
@@ -109,6 +107,53 @@ Scaled to **15 batches covering 75 orders**, it raised the objective by **$1,358
 > **The quantum solver matches the greedy exactly — the difference is $0 on every batch.**
 >
 > That is the honest headline. At 18 qubits a batch is small enough that both methods find the same best answer, so this shows the encoding is **correct**, not that quantum is **faster**. Everything that would have to be true before claiming a hardware advantage does hold: a faithful energy ordering, a ground state equal to the true best, stable repeated runs, no slack qubits, and batching that keeps the qubit count flat as orders grow. All runs used exact solvers and noise-free simulation.
+
+---
+
+## Scalability
+
+![Scaling](Figures/scaling.png)
+
+### What grows on the classical side
+
+Binary variables are **orders × candidate warehouses**. Constraint rows are dominated by the stock rows, which are **warehouse × SKU × day**. Every size below reached the proven best answer.
+
+| Focus orders | Binary variables | Rows | Solve time |
+|---|---|---|---|
+| 50 | 227 | 35,830 | 1.4s |
+| 100 | 458 | 64,976 | 6.4s |
+| 200 | 920 | 99,153 | 18.5s |
+| 300 | 1,472 | 123,972 | 35.1s |
+| **472 (all)** | **2,594** | **148,663** | **63.7s** |
+
+Doubling from 50 to 100 orders doubles the binaries and costs 4.6× the time. From 300 to 472 the binaries rise 1.8× and time rises 1.8×. Growth is steep but not explosive at this size, which is why **no subset was needed — the whole focus set solves in about a minute.**
+
+### What grows on the quantum side
+
+Qubits are **orders × candidate warehouses per batch**, with no slack variables. That choice is what keeps the numbers small:
+
+| Orders in a batch | 3 | 6 | 9 | 12 | 18 |
+|---|---|---|---|---|---|
+| Qubits, no slack (ours) | 9 | **18** | 27 | 36 | 54 |
+| Qubits with slack variables | 27 | 54 | 81 | 108 | 162 |
+
+Exact ground-state solving costs 2ⁿ, so 18 qubits takes about 0.3 seconds and 27 would take roughly 500× longer. **18 qubits per batch is our ceiling**, and batching is what keeps us under it.
+
+### The lever we tested
+
+Batching is not proposed on paper — it is built and measured. The 90 highest-value orders split into **15 batches** of 3 to 6 orders, chosen so the orders in a batch share candidate warehouses. Batch size stays between 9 and 18 qubits no matter how many orders there are in total.
+
+| | Classical MILP | Quantum, batched |
+|---|---|---|
+| Orders handled together | all 472 | 3–6 per batch |
+| Sees links between orders | yes | only inside a batch |
+| Time for the whole set | 63.7s | 1.07s |
+
+The cost of batching shows up in the classical results. Solving 472 orders together produces 66 moves and *saves* freight, because the solver can chain moves across warehouses. Batches cannot chain across their own boundary, so that saving is exactly what batching gives up.
+
+### What breaks first
+
+Not the qubit count, and not the solve time. **It is the number of two-qubit gates.** Constraint terms grow quadratically with batch size: an 18-qubit batch already needs 63 quadratic terms against 18 linear ones. On real hardware that depth, not the width, is what current devices struggle with.
 
 ---
 
