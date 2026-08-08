@@ -296,15 +296,10 @@ All reported metrics are generated using the same evaluation pipeline and object
 
 # Team
 
-(Add team members and individual contributions.)
-
-Example:
-
-| Member | Contribution |
-|----------|-------------|
-| Member 1 | Classical optimization, mathematical formulation |
-| Member 2 | Quantum implementation, QAOA experiments |
-| Member 3 | Dashboard, documentation, visualization |
+| Member | Email | Contribution |
+|----------|-------------|-------------|
+| Hussein Shiri | h.y.shiri18@gmail.com | Classical optimization, mathematical formulation, Documentation, Dashboard |
+| Abdullah Kazi | ninokazlamaz@gmail.com | Quantum implementation, QAOA experiments, Hybrid algorithm, Documentation, Team Leader |
 
 ---
 
