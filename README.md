@@ -1,312 +1,221 @@
-# Hybrid Classical–Quantum Optimization for Distributed Order Management (DOM) WISER-2026 Team- Feynman Prodigies 
+# Distributed Order Management with Classical and Quantum Optimization
 
-> A reproducible optimization framework for Distributed Order Management (DOM) that models order reassignment as a constrained combinatorial optimization problem. The project benchmarks classical heuristics, exact optimization, and hybrid quantum-classical approaches (QAOA) on challenge-approved, anonymized Nestlé-style fulfillment data.
+**WISER Global Quantum+AI Program 2026 — Nestlé Challenge**
+*Team Feynman Prodigies*
 
----
+When a warehouse cannot fill an order, a planner has to choose: send a part delivery and lose the sale, or move the order to another warehouse and pay more to ship it. Do that for a whole order book at once and the choices stop being independent — warehouses share stock, docks and picking staff, so every move changes what is possible for the next order.
 
-# In 60 Seconds
-
-## What it is
-
-This project studies **Distributed Order Management (DOM)**, where customer orders must be assigned to distribution centers (DCs) while balancing inventory availability, fulfillment rate, shipping cost, operational constraints, and business penalties.
-
-The optimization problem is formulated as a constrained binary optimization problem and solved using multiple approaches including:
-
-- Default business allocation
-- Classical Greedy heuristic
-- Exact optimization (QUBO subset)
-- Hybrid Quantum-Classical QAOA
+We solved that problem four ways on the same data, scored them with the same objective, and checked every answer with the same rule checker. **The exact solver is worth $1.93M more than doing nothing**, and it pays *less* extra freight than the cheap heuristic while moving more orders.
 
 ---
 
-## What this project does NOT claim
-
-- No quantum advantage claim is made.
-- The study does not claim current quantum hardware outperforms classical optimization.
-- The objective is to evaluate where quantum optimization is competitive, where it matches classical methods, and where current limitations remain.
-
----
-
-# Key Findings
-
-| Finding | Summary |
-|----------|---------|
-| Classical heuristics provide strong baselines | Greedy reassignment significantly improves fulfillment compared to default allocation while maintaining feasible solutions. |
-| QAOA reaches near-optimal solutions | On benchmark QUBO instances, QAOA consistently converges within a very small gap of the exact optimum. |
-| Warm-start QAOA matches Greedy | On real DOM instances (18–24 qubits), warm-started QAOA consistently reproduced the Greedy+2-opt solution across all evaluated instances. |
-| Business objectives improve | Optimized assignments increase fulfillment while reducing shortages and penalties compared to default planning. |
-| Real operational constraints matter | Inventory, throughput capacity, shipping costs, and feasibility repair dominate practical solution quality. |
-
----
-
-# Project Status
-
-This repository contains the complete implementation submitted for the WISER 2026 Quantum Challenge.
-
-Current implementation includes:
-
-- Data preprocessing
-- Baseline business allocation
-- Classical Greedy reassignment
-- Mathematical optimization formulation
-- QUBO generation
-- Ising Hamiltonian construction
-- Warm-start QAOA implementation
-- Classical feasibility repair
-- Solution comparison framework
-- Planner recommendation generation
-- Business performance evaluation
-
-Additional documentation, dashboard, and hardware benchmarking are included in this repository.
-
----
-
-# Challenge Context
-
-Distributed Order Management (DOM) determines how customer orders should be fulfilled across multiple distribution centers.
-
-A planner must simultaneously balance:
-
-- Inventory availability
-- Warehouse capacity
-- Shipping cost
-- Customer service level
-- Penalty costs
-- Operational feasibility
-
-This naturally becomes a constrained combinatorial optimization problem where every reassignment decision affects many others.
-
----
-
-# Repository Structure
+## The problem in one line
 
 ```
-.
-├── data/
-├── notebooks/
-│   ├── 01_data_understanding.ipynb
-│   ├── 02_baseline.ipynb
-│   ├── 03_greedy.ipynb
-│   ├── 04_quantum.ipynb
-│   ├── 05_comparison.ipynb
-│   └── 06_dashboard.ipynb
-│
-├── src/
-│   ├── preprocessing/
-│   ├── classical/
-│   ├── quantum/
-│   ├── optimization/
-│   └── utils/
-│
-├── dashboard/
-│   └── streamlit_app.py
-│
-├── results/
-│
-├── docs/
-│
-└── README.md
+Objective  =  Sales revenue  −  Penalty for unmet demand  −  Shipping cost
 ```
 
----
-
-# Methodology
-
-The workflow follows five major stages.
-
-## 1. Data Understanding
-
-- Orders
-- SKUs
-- Distribution Centers
-- Inventory
-- Throughput Capacity
-- Shipping Costs
-- Default Assignments
+Maximise it, subject to seven business rules. On this data pack: **1,109 orders**, **1,110 SKUs**, **8 distribution centres**, and **472 orders that need a decision**.
 
 ---
 
-## 2. Classical Baselines
+## How the pipeline works
 
-Two benchmark methods are implemented.
+```mermaid
+flowchart LR
+    A["Order book<br/>1,109 orders"] --> B["Find focus orders<br/>472 need a decision"]
+    B --> C["Baseline<br/>leave everything"]
+    B --> D["Greedy<br/>one order at a time"]
+    B --> E["Exact MILP<br/>all orders together"]
+    B --> F["QUBO / QAOA<br/>in small batches"]
+    C --> G["Same objective,<br/>same rule checks"]
+    D --> G
+    E --> G
+    F --> G
+    G --> H["Planner view<br/>66 recommended moves"]
+```
 
-### Default Assignment
-
-Business default allocation without optimization.
-
-### Greedy Reassignment
-
-Sequential heuristic that reallocates eligible orders while respecting inventory and operational constraints.
-
----
-
-## 3. Mathematical Formulation
-
-The optimization problem is formulated as a constrained binary optimization model.
-
-Decision variables represent candidate order-to-DC assignments.
-
-The objective maximizes business value while minimizing penalties and transportation costs subject to:
-
-- Inventory constraints
-- Capacity constraints
-- Assignment constraints
-- Business rules
-
-For tractable subsets, the formulation is converted into a QUBO representation suitable for quantum optimization.
+An order joins the focus list if it is **short of stock** at its own warehouse (447 orders), or if it ships on a day when that warehouse has **no dock slot left** (25 orders).
 
 ---
 
-## 4. Quantum Optimization
+## Main result
 
-Hybrid quantum-classical optimization is performed using:
+Measured on all 472 focus orders.
 
-- QAOA
-- Warm-start initialization
-- CVaR objective
-- Classical parameter optimization
-- Feasibility repair
-- Best-of-N sampling
+| Method | Objective | Fill rate | Orders moved | Runtime |
+|---|---|---|---|---|
+| Leave everything alone | $44,365,994 | 90.47% | 0 | 0.21s |
+| Greedy — by order value | $44,810,604 | 91.28% | 41 | 0.40s |
+| Greedy — by shortage | $44,786,479 | 91.26% | 39 | 0.42s |
+| **Exact MILP (PuLP + CBC)** | **$46,295,828** | **93.28%** | **66** | **63.72s** |
 
-Solutions are compared directly against the classical baselines.
+> [!IMPORTANT]
+> **The exact solver moves 66 orders against the greedy's 41, and still pays $15,285 less in extra freight.**
+>
+> This is the clearest evidence that the orders really do depend on each other. Planning them together lets the solver pick cheaper lanes and chain moves: emptying one warehouse frees stock that lets a second order move in. A method that decides one order at a time and never goes back cannot see that.
 
----
-
-## 5. Business Evaluation
-
-Each solution is evaluated using identical business metrics.
-
-- Objective value
-- Fill rate
-- Orders reassigned
-- Shipping cost
-- Penalty cost
-- Runtime
-- Constraint feasibility
+**The greedy captures only 23% of the gain that is actually reachable.** Against the full objective its gap looks small (3.21%), but most of that money sits in orders that were never in trouble. Measured against the distance between doing nothing and the proven best answer, the greedy leaves three quarters behind.
 
 ---
 
-# Results
+## The greedy gets worse as the problem grows
 
-The project compares
+We solved five sizes of the same problem to the proven best answer and measured how far the greedy fell behind each time.
 
-- Default Assignment
-- Classical Greedy
-- Exact Optimization
-- Hybrid QAOA
+| Focus orders | 50 | 100 | 200 | 300 | 472 |
+|---|---|---|---|---|---|
+| **Greedy gap** | 0.84% | 2.08% | 3.11% | 3.12% | **3.21%** |
+| Solve time | 1.4s | 6.4s | 18.5s | 35.1s | 63.7s |
+| Binary variables | 227 | 458 | 920 | 1,472 | 2,594 |
 
-using a common objective function and feasibility checks.
-
-Highlights include:
-
-- Significant improvement over default allocation
-- Near-optimal quantum solutions on benchmark QUBO instances
-- Stable quantum performance across multiple independent runs
-- Warm-start QAOA consistently matching Greedy+2-opt on tested real-world subsets
+On small problems a heuristic is nearly as good as the best answer. The more orders compete for the same stock, the more it loses. A full production order book would widen this further.
 
 ---
 
-# Planner View
+## What actually blocks a move
 
-The optimization recommends only operationally feasible reassignment decisions.
+| Reason | Candidates rejected | Share |
+|---|---|---|
+| The 5% fill-rate gate | 1,682 | 46.0% |
+| The other warehouse does not stock the SKU | 1,457 | 39.8% |
+| No workable alternative at all | 423 | 11.6% |
+| Everything else | 97 | 2.6% |
 
-Each recommendation includes:
-
-- Original Distribution Center
-- Recommended Distribution Center
-- Expected fulfillment improvement
-- Shipping impact
-- Business benefit
-
-The planner view translates optimization outputs into actionable logistics decisions.
+**Docks and picking together block 28 candidates out of 3,659.** The network is not short of buildings. It is limited by the move policy and by which warehouses carry which products — both of which are decisions, not physics.
 
 ---
 
-# Dashboard
+## The quantum side
 
-A Streamlit dashboard provides interactive visualization of:
+We built the QUBO/Ising version of the same model. Capacity becomes a penalty term in the objective, so the encoding needs **no slack qubits** — qubits equal orders × candidate warehouses exactly. A batch of 6 orders and 3 warehouses is **18 qubits**, against roughly 54 for the usual slack-based encoding.
 
-- Dataset overview
-- Baseline comparison
-- Classical vs Quantum results
-- Planner recommendations
-- Fill-rate improvements
-- Runtime comparison
+**We checked it against ground truth first.** A 3×3 instance has only 27 valid combinations, so we listed all of them:
 
----
+| | Objective |
+|---|---|
+| Leave everything alone | $721,191 |
+| Every combination (true best) | **$760,518** |
+| QUBO ground state | **$760,518** |
+| QAOA, best of 5 runs | **$760,518** |
 
-# Scalability
+Ranking those 27 answers by QUBO energy gives the same order as ranking them by money, so the encoding is faithful and not merely lucky. Five QAOA runs gave a spread of **0.046%**, four hit the exact best, and all five beat doing nothing. No repair was needed.
 
-The project discusses how optimization complexity grows with:
+Scaled to **15 batches covering 75 orders**, it raised the objective by **$1,358,671** (+10.0%) and fill rate from 88.6% to 97.3%, with **zero rule violations** and 1.07 seconds of solve time.
 
-- Number of Orders
-- Distribution Centers
-- Candidate assignments
-- Inventory constraints
-- Decision variables (QUBO size)
-
-The report also evaluates:
-
-- Runtime scaling
-- Quantum resource requirements
-- Practical limitations of current hardware
-- Potential decomposition strategies
+> [!NOTE]
+> **The quantum solver matches the greedy exactly — the difference is $0 on every batch.**
+>
+> That is the honest headline. At 18 qubits a batch is small enough that both methods find the same best answer, so this shows the encoding is **correct**, not that quantum is **faster**. Everything that would have to be true before claiming a hardware advantage does hold: a faithful energy ordering, a ground state equal to the true best, stable repeated runs, no slack qubits, and batching that keeps the qubit count flat as orders grow. All runs used exact solvers and noise-free simulation.
 
 ---
 
-# Limitations
+## The planner dashboard
 
-Current limitations include:
+![Dashboard](Figures/dashboard.png)
 
-- Small QUBO subsets due to available quantum resources
-- Warm-start QAOA biases exploration toward classical solutions
-- Current noisy quantum hardware limits circuit depth
-- Larger industrial-scale instances require decomposition and hybrid workflows
+Six pages that walk through the planner workflow: the data, the method comparison, the recommended moves, fill rate and cost, runtime, and a flow view of where orders go. Everything in it is fixed output from the notebooks, so it opens instantly and needs no data files.
 
 ---
 
-# Future Work
+## What is in this repo
 
-Potential extensions include:
+| Folder | What is in it |
+|---|---|
+| `notebooks/` | 12 notebooks. **Each one runs on its own** — no notebook reads another's output |
+| `src/` | The same logic as importable modules, plus the two quantum encodings |
+| `dashboard/` | The Streamlit app and its fixed numbers |
+| `Docs/` | Technical report, business summary, planner view |
+| `deliverables/` | The four challenge tasks written up |
+| `Presentation/` | The 7-slide deck |
+| `Figures/` | Every chart, all generated from the notebooks |
+| `tests/` | 17 checks on the data, the seven rules, and the objective |
+| `scripts/` | Exact ground-state solver used by the quantum notebooks |
 
-- Cold-start QAOA
-- Larger benchmark instances
-- Improved decomposition strategies
-- Advanced feasibility repair
-- Robust optimization under demand uncertainty
-- Hardware execution on larger quantum devices
-- Learning-based candidate generation
-
----
-
-# Reproducibility
-
-The repository contains:
-
-- Source code
-- Jupyter notebooks
-- Instructions to reproduce experiments
-- Challenge-approved anonymized datasets
-- Configuration files
-- Result generation scripts
-
-All reported metrics are generated using the same evaluation pipeline and objective function.
+| Notebook | What it does |
+|---|---|
+| `01` – `02` | Explore the data, prepare it, and state the rules |
+| `03` – `05` | Baseline, greedy heuristic, exact MILP |
+| `06` – `10`, `12` | Quantum: validation, the encoding, batching, QAOA, hybrid |
+| `11` | All results side by side — **no computing, results only** |
 
 ---
 
-# Team
+## How to run it
 
-| Member | Email | Contribution |
-|----------|-------------|-------------|
-| Hussein Shiri | h.y.shiri18@gmail.com | Classical optimization, mathematical formulation, Documentation, Dashboard |
-| Abdullah Kazi | ninokazlamaz@gmail.com | Quantum implementation, QAOA experiments, Hybrid algorithm, Documentation, Team Leader |
+### The notebooks
+
+You need the challenge data pack. Put the `DOM-data` folder anywhere inside the project — the notebooks find it by themselves. Nothing is uploaded from inside a notebook and nothing is saved to disk.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r Requirement.txt
+
+jupyter lab
+```
+
+Then open any notebook and run it top to bottom. They do not depend on each other, so you can start anywhere.
+
+On Colab, upload the data folder to `/content` and press **Run all**. Notebook 05 installs PuLP by itself if it is missing.
+
+### The dashboard
+
+```bash
+source .venv/bin/activate
+cd dashboard
+streamlit run app.py
+```
+
+It opens at `http://localhost:8501`. No data files needed.
+
+### The tests
+
+```bash
+pip install pytest
+cd tests
+DOM_DATA="/path/to/DOM-data/input data" pytest -v
+```
+
+If no data is found the tests are skipped rather than failed, so they still run in a fresh clone.
+
+> [!TIP]
+> On Debian and Ubuntu, `pip install` outside a virtual environment fails with `externally-managed-environment`. The `python3 -m venv .venv` step above is what avoids it. If `venv` is missing, run `sudo apt install python3-full python3-venv`.
 
 ---
 
-# License
+## What we learned
 
-This project is intended for the WISER 2026 Quantum Challenge.
+**The rules matter more than the solver.** The single biggest lever we found is not the optimisation method — it is the 5% divert gate, which rejects almost half of all candidate moves. That is a policy setting, not a law of the warehouse.
 
-Challenge datasets remain subject to the organizer's data usage and confidentiality requirements.
+**A negative result is worth reporting.** We built the weighted exact-cover model first, with fill quantities fixed when each column is generated. It scored **0.036% below the greedy** — an impossible result for something meant to be an upper bound. Fixed quantities cannot describe a partial fill, so the heuristic's answers were not even inside its feasible set. Making quantities into decision variables fixed it. The challenge offers exact-cover as an alternative formulation, so testing and rejecting it on evidence seemed more useful than staying quiet.
 
-Public submissions include only challenge-approved anonymized data and aggregate metrics.
+**One model, three solvers.** The objective and all seven rules live in one place. The baseline, the greedy and the MILP import them; none of the three writes its own version. That is what makes the comparison fair rather than merely claimed.
+
+**We do not claim a quantum advantage.** We claim a validated encoding, and we show the checks.
+
+---
+
+## Limits
+
+- **No demand forecast in the data.** Nothing holds stock back at the receiving warehouse for its own upcoming orders, so every method here moves more orders than a planner would accept.
+- **No throughput limit.** The file reports usage but never a ceiling. We use the highest usage ever seen at each warehouse as the limit, and a fully booked dock day as the trigger for the focus list.
+- **No holiday calendar.** Revised ship dates avoid weekends but not public holidays.
+- **Two warehouses (5083, 5773) have no dock rows**, so the dock rule cannot be checked there.
+- **The quantum results cover 75 orders**, not all 472, and run on noise-free simulation. Batching also throws away the links between batches — which is exactly the coupling that gave the classical solver its freight saving.
+
+---
+
+## Team
+
+**Feynman Prodigies** — WISER Global Quantum+AI Program 2026
+
+| Name | Email |
+|---|---|
+| Hussein Shiri | h.y.shiri18@gmail.com |
+
+## Tools and data
+
+**Software** — [PuLP](https://coin-or.github.io/pulp/) with the CBC solver for the exact model, [Qiskit](https://www.ibm.com/quantum/qiskit) with `qiskit-optimization` and `qiskit-algorithms` for the QUBO and QAOA work, [pandas](https://pandas.pydata.org/) and [NumPy](https://numpy.org/) throughout, [Matplotlib](https://matplotlib.org/) and [Plotly](https://plotly.com/python/) for the charts, and [Streamlit](https://streamlit.io/) for the dashboard. [Claude](https://claude.ai) (Anthropic) was used for code development, debugging and drafting documentation.
+
+**Data** — The anonymized Nestlé DOM proof-of-concept data pack supplied through the WISER challenge workspace. Order window 24 June to 5 July 2024. No raw Nestlé operational data, customer identifiers, commercial costs or warehouse-level confidential details are published in this repository. All order IDs shown are the anonymized identifiers from the challenge pack.
