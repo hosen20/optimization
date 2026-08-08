@@ -4,28 +4,28 @@
 
 ### Deterministic assignment model
 
-Let \(n=|\mathcal{O}|\) (focus orders), \(m=|\mathcal{D}|\) (candidate DCs), \(s\) average SKUs per order, \(T\) planning days.
+Let $n=|\mathcal{O}|$ (focus orders), $m=|\mathcal{D}|$ (candidate DCs), $s$ average SKUs per order, $T$ planning days.
 
 | Quantity | Asymptotic growth | Concrete Nestlé numbers (n=472) |
 |----------|-------------------|---------------------------------|
-| Binary assignment vars \(x_{o,d}\) | \(O(nm)\) | ≈ 2 300 candidate options |
-| Continuous fill vars \(q_{o,d,s}\) | \(O(nms)\) | ≈ 85 000 |
-| Stock rows (C3) | \(O(nms\cdot W)\) (W = cover window) | ≈ 60 000 |
-| Total MIP variables | \(O(nms)\) | 88 342 |
-| Total MIP rows | \(O(nms)\) | 148 663 |
+| Binary assignment vars $x_{o,d}$ | $O(nm)$ | ≈ 2 300 candidate options |
+| Continuous fill vars $q_{o,d,s}$ | $O(nms)$ | ≈ 85 000 |
+| Stock rows (C3) | $O(nms\cdot W)$ (W = cover window) | ≈ 60 000 |
+| Total MIP variables | $O(nms)$ | 88 342 |
+| Total MIP rows | $O(nms)$ | 148 663 |
 
 ### Exact-cover / column model
 
 | Quantity | Growth | Control knob |
 |----------|--------|--------------|
-| Columns generated per order | \(1+k\) (k alternates) | pricing depth |
-| Qubits per batch RMP | \(O(b\cdot k)\) where b = batch size | batch size & column reduction |
+| Columns generated per order | $1+k$ (k alternates) | pricing depth |
+| Qubits per batch RMP | $O(b\cdot k)$ where b = batch size | batch size & column reduction |
 | Observed | 8–12 qubits per batch | max_qubits = 8 in the hybrid notebook |
 
 ### Method-2 (slack-free) Ising
 
-Qubit count = number of pure assignment variables = \(n_{\text{batch}}\times m_{\text{batch}}\).  
-A conventional binary-expanded slack formulation would multiply this figure by \(3\)–\(5\times\) (capacities \(10^4\)–\(10^5\)), rendering even a 6-order × 3-DC instance intractable on a laptop simulator.
+Qubit count = number of pure assignment variables = $n_{\text{batch}}\times m_{\text{batch}}$.  
+A conventional binary-expanded slack formulation would multiply this figure by $3$–$5\times$ (capacities $10^4$–$10^5$), rendering even a 6-order × 3-DC instance intractable on a laptop simulator.
 
 ---
 
@@ -68,10 +68,10 @@ Feasible up to ≈ 20–24 qubits (state-vector / dense NumPy). Beyond that memo
    Independent batch RMPs ignore capacity coupling *across* batches. A pure batch-and-aggregate scheme can therefore produce globally infeasible solutions or leave value on the table; a dual outer loop (Lagrangian / Augmented Lagrangian) is required to restore coordination.
 
 4. **Parameter sensitivity**  
-   The Method-2 penalty weight \(\alpha\), the exact-cover penalty \(\mu\), and the divert gate (5 pp / 100 cases) all affect both feasibility and objective. No automatic tuning loop is present in the current notebooks.
+   The Method-2 penalty weight $\alpha$, the exact-cover penalty $\mu$, and the divert gate (5 pp / 100 cases) all affect both feasibility and objective. No automatic tuning loop is present in the current notebooks.
 
 5. **Inventory modelling ambiguity**  
-   The business document’s 5-day cover window versus a strict day-by-day ledger changes the MILP optimum by ≈ $1.4 M. Any quantum encoding inherits the same modelling choice.
+   The business document’s 5-day cover window versus a strict day-by-day ledger changes the MILP optimum by ≈ \$1.4 M. Any quantum encoding inherits the same modelling choice.
 
 ---
 
@@ -99,7 +99,7 @@ Feasible up to ≈ 20–24 qubits (state-vector / dense NumPy). Beyond that memo
 
 ### D. Parameter & feasibility co-optimisation
 
-- Treat \(\alpha\) (Method 2) and \(\mu\) (exact-cover) as hyperparameters; outer Bayesian optimisation or simple grid search on a validation set of historical days.  
+- Treat $\alpha$ (Method 2) and $\mu$ (exact-cover) as hyperparameters; outer Bayesian optimisation or simple grid search on a validation set of historical days.  
 - After quantum sampling, apply a *shared* classical repair (2-opt + force-feasible) identical to the one used by the pure classical heuristic—guaranteeing that every returned solution is business-feasible and enabling a fair quality comparison.
 
 ### E. Hardware-aware compilation (medium-term)

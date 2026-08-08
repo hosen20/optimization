@@ -2,9 +2,9 @@
 
 **Distributed Order Management (DOM)** decides, for every focus order that cannot be fully filled at its default Distribution Centre (DC), whether to keep the order or divert it to an alternate DC. The objective maximises fulfilment value:
 
-\[
+$$
 \sum_{o,d}\bigl(R_o\cdot f_{o,d}-S_{o,d}-P_o(1-f_{o,d})\bigr)x_{o,d}
-\]
+$$
 
 subject to one-DC-per-order, inventory, dock and throughput capacity constraints.
 
@@ -16,12 +16,12 @@ This note distils the central trade-offs observed across the classical pipeline 
 
 | Method | Focus objective | Δ vs Baseline | Fill rate | Diverted | Runtime | Quality / cost characterisation |
 |--------|-----------------|---------------|-----------|----------|---------|---------------------------------|
-| Baseline 1 (do-nothing) | $44,365,994 | 0 | 90.47 % | 0 | 0.21 s | Reference; zero search cost |
-| Greedy 2A (revenue sort) | $44,810,604 | +$444,610 | 91.28 % | 41 | 0.40 s | Captures ~23 % of reachable gain |
-| Greedy 2B (shortfall sort) | $44,786,479 | +$420,485 | 91.26 % | 39 | 0.42 s | Slightly weaker ordering |
-| Classical MILP (CBC) | **$46,295,828** | **+$1,929,835** | **93.28 %** | **66** | 63.72 s | Proven optimum on 472 focus orders |
-| Quantum Method-2 (exact Ising, small batches) | matches Greedy on batch | ~+$1.36 M on 75-order subset | ~97 % on subset | all diverted in batch | < 1 s quantum | Exact ground state of slack-free QUBO |
-| Warm-start QAOA + 2-opt (real-data instances) | ties Greedy | $0 aggregate delta | identical assignment counts | identical | minutes (sim) | Sampling recovers the same local optimum |
+| Baseline 1 (do-nothing) | \$44,365,994 | 0 | 90.47 % | 0 | 0.21 s | Reference; zero search cost |
+| Greedy 2A (revenue sort) | \$44,810,604 | +\$444,610 | 91.28 % | 41 | 0.40 s | Captures ~23 % of reachable gain |
+| Greedy 2B (shortfall sort) | \$44,786,479 | +\$420,485 | 91.26 % | 39 | 0.42 s | Slightly weaker ordering |
+| Classical MILP (CBC) | **\$46,295,828** | **+\$1,929,835** | **93.28 %** | **66** | 63.72 s | Proven optimum on 472 focus orders |
+| Quantum Method-2 (exact Ising, small batches) | matches Greedy on batch | ~+\$1.36 M on 75-order subset | ~97 % on subset | all diverted in batch | < 1 s quantum | Exact ground state of slack-free QUBO |
+| Warm-start QAOA + 2-opt (real-data instances) | ties Greedy | \$0 aggregate delta | identical assignment counts | identical | minutes (sim) | Sampling recovers the same local optimum |
 
 **Observations**
 
