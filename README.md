@@ -1,4 +1,4 @@
-# Hybrid Classical–Quantum Optimization for Distributed Order Management (DOM)
+# Hybrid Classical–Quantum Optimization for Distributed Order Management (DOM) WISER-2026 Team- Feynman Prodigies 
 
 > A reproducible optimization framework for Distributed Order Management (DOM) that models order reassignment as a constrained combinatorial optimization problem. The project benchmarks classical heuristics, exact optimization, and hybrid quantum-classical approaches (QAOA) on challenge-approved, anonymized Nestlé-style fulfillment data.
 
