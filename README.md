@@ -7,6 +7,8 @@ When a warehouse cannot fill an order, a planner has to choose: send a part deli
 
 We solved that problem four ways on the same data, scored them with the same objective, and checked every answer with the same rule checker. **The exact solver is worth $1.93M more than doing nothing**, and it pays *less* extra freight than the cheap heuristic while moving more orders.
 
+**We make no quantum advantage claim.** The goal was to find out where quantum optimization is competitive, where it only matches classical methods, and where the limits still are. On this data it matches.
+
 ---
 
 ## The problem in one line
@@ -196,6 +198,24 @@ If no data is found the tests are skipped rather than failed, so they still run 
 
 ---
 
+## Where this would go next
+
+- **Cold-start QAOA.** Our warm start biases the search toward the classical answer, which is useful but limits what the quantum method can discover on its own.
+- **Bigger instances by decomposition.** Batching works but drops the links between batches. A smarter split, or a hybrid workflow that passes information between batches, would keep more of them.
+- **Demand uncertainty.** Every method here assumes the forecast is exact. Robust optimization would give recommendations that survive a bad forecast.
+- **Learning which moves to try.** Most candidates are rejected by the same two rules. A model that predicts which ones are worth checking would cut the search a long way.
+- **Real hardware** on larger devices, once circuit depth allows it.
+
+---
+
+## Reproducibility
+
+Every number in the report, the slides and the dashboard came from an executed notebook in this repo. Nothing is estimated.
+
+The objective and all seven rules live in one place. The baseline, the greedy and the MILP import them, so the three methods differ only in how they search — not in what they are searching over. The tests in `tests/` check the rules behave as written, and notebook `11` holds the results as fixed numbers so the comparison cannot silently drift.
+
+---
+
 ## Limits
 
 - **No demand forecast in the data.** Nothing holds stock back at the receiving warehouse for its own upcoming orders, so every method here moves more orders than a planner would accept.
@@ -210,12 +230,17 @@ If no data is found the tests are skipped rather than failed, so they still run 
 
 **Feynman Prodigies** — WISER Global Quantum+AI Program 2026
 
-| Name | Email |
-|---|---|
-| Hussein Shiri | h.y.shiri18@gmail.com |
+| Member | Email | Contribution |
+|---|---|---|
+| Abdullah Kazi | ninokazlamaz@gmail.com | Team leader · quantum implementation · QAOA experiments · hybrid algorithm · documentation |
+| Hussein Shiri | h.y.shiri18@gmail.com | Classical optimization · mathematical formulation · dashboard · documentation |
 
 ## Tools and data
 
 **Software** — [PuLP](https://coin-or.github.io/pulp/) with the CBC solver for the exact model, [Qiskit](https://www.ibm.com/quantum/qiskit) with `qiskit-optimization` and `qiskit-algorithms` for the QUBO and QAOA work, [pandas](https://pandas.pydata.org/) and [NumPy](https://numpy.org/) throughout, [Matplotlib](https://matplotlib.org/) and [Plotly](https://plotly.com/python/) for the charts, and [Streamlit](https://streamlit.io/) for the dashboard. [Claude](https://claude.ai) (Anthropic) was used for code development, debugging and drafting documentation.
 
 **Data** — The anonymized Nestlé DOM proof-of-concept data pack supplied through the WISER challenge workspace. Order window 24 June to 5 July 2024. No raw Nestlé operational data, customer identifiers, commercial costs or warehouse-level confidential details are published in this repository. All order IDs shown are the anonymized identifiers from the challenge pack.
+
+## License
+
+Built for the WISER 2026 Quantum Challenge. The challenge datasets remain subject to the organizer's data usage and confidentiality rules. This repository contains only challenge-approved anonymized data and aggregate metrics.
