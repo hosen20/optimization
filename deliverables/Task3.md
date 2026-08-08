@@ -18,16 +18,16 @@ $$
 x_{o,d} &\in \{0,1\} && \text{order } o \text{ assigned to DC } d,\\
 q_{o,d,s} &\ge 0 && \text{cases of SKU } s \text{ filled for order } o \text{ at DC } d,\\
 z_o &\in \{0,1\} && \text{1 if order } o \text{ meets its fill-rate threshold (no penalty)},\\
-\operatorname{pen}_o &\ge 0 && \text{penalty charged on order } o.
+\mathrm{pen}_o &\ge 0 && \text{penalty charged on order } o.
 \end{aligned}
 $$
 
 ### Objective (maximise)
 
 $$
-\sum_{o,d,s} \operatorname{price}_{o,s}\, q_{o,d,s}
+\sum_{o,d,s} \mathrm{price}_{o,s}\, q_{o,d,s}
 \;-\;
-\sum_o \operatorname{pen}_o
+\sum_o \mathrm{pen}_o
 \;-\;
 \sum_{o,d} S_{o,d}\, x_{o,d}.
 $$
@@ -39,11 +39,11 @@ This is exactly Revenue − Penalty − Shipping, the expression evaluated by `o
 | Id | Business rule | Mathematical statement |
 |----|---------------|------------------------|
 | C1 | At most one DC per order | $\sum_d x_{o,d}=1\quad\forall o$ |
-| C2 | Never fill more than ordered; fill only at chosen DC | $q_{o,d,s}\le\operatorname{dem}_{o,s}\,x_{o,d}$ |
-| C3 | Inventory (5-day forward cover) | $\sum_{o\in\operatorname{draws}(d,s,u)}q_{o,d,s}\le C_{d,s,u}+\operatorname{GIVE}_{d,s,u}$ |
-| C4 | Divert gate (≥ 5 pp *or* ≥ 100 cases) | $\sum_s q_{o,d,s}\ge\operatorname{need}_o\cdot x_{o,d}$ for non-default $d$ |
+| C2 | Never fill more than ordered; fill only at chosen DC | $q_{o,d,s}\le\mathrm{dem}_{o,s}\,x_{o,d}$ |
+| C3 | Inventory (5-day forward cover) | $\sum_{o\in\mathrm{draws}(d,s,u)}q_{o,d,s}\le C_{d,s,u}+\mathrm{GIVE}_{d,s,u}$ |
+| C4 | Divert gate (≥ 5 pp *or* ≥ 100 cases) | $\sum_s q_{o,d,s}\ge\mathrm{need}_o\cdot x_{o,d}$ for non-default $d$ |
 | C5 | Daily pick capacity | linearised pallet-pick inequality |
-| C6 | One dock slot per order | $\sum_{o\text{ on }(d,t)}x_{o,d}\le\operatorname{DockAvail}_{d,t}$ |
+| C6 | One dock slot per order | $\sum_{o\text{ on }(d,t)}x_{o,d}\le\mathrm{DockAvail}_{d,t}$ |
 | C7 | Penalty only below threshold | big-M linearisation of the step function |
 
 ### Solution method
